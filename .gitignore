@@ -164,3 +164,4 @@ cython_debug/
 # Bible-Study-Bot specific
 tmp.* 
 .env 
+docker_volumes/

@@ -1,6 +1,12 @@
+vector_store: 
+  provider: qdrant
+  client_args: 
+    host: localhost
+    port: 6333
+  collection_name: bible-cuvs
 model: 
   framework: huggingface
-  name: sentence-transformers/all-mpnet-base-v2
+  name: hfl/chinese-roberta-wwm-ext
 defaults: 
   n_prev_context_verses: 3 
   n_next_context_verses: 3

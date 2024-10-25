@@ -1,0 +1,13 @@
+name: bible-study-bot
+version: '3.8'
+
+services:
+  vector-store:
+    image: qdrant/qdrant:v1.12.1
+    ports:
+      - "6333:6333"  # Expose Qdrant's dashboard
+      - "6334:6334"  # Expose Qdrant's HTTP port
+    volumes:
+      - .docker_volumes/qdrant_data:/qdrant/data  # Persistent data volume
+    environment:
+      QDRANT_HTTP_ADDRESS: 0.0.0.0:6334
