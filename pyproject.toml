@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "bible-study-bot"
+version = "0.0.1"
+description = ""
+authors = ["wfchiang <weifan.wf@gmail.com>"]
+readme = "README.md"
+packages = [{include = "bible_study_bot", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

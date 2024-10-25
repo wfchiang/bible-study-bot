@@ -1,0 +1,10 @@
+model: 
+  framework: huggingface
+  name: sentence-transformers/all-mpnet-base-v2
+defaults: 
+  n_prev_context_verses: 3 
+  n_next_context_verses: 3
+books: 
+  genesis:
+    file: 001genesis.yaml
+    context_scope: book
