@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 提摩太前书
+  bible_version: 和合本(简)
+  book: 1timothy
 verses:
 - metadata:
     chapter: 1

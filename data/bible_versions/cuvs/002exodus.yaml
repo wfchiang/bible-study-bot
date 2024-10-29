@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 出埃及记
+  bible_version: 和合本(简)
+  book: exodus
 verses:
 - metadata:
     chapter: 1

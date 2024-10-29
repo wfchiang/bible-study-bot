@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 雅歌
+  bible_version: 和合本(简)
+  book: songs
 verses:
 - metadata:
     chapter: 1

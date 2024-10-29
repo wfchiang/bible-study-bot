@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 申命记
+  bible_version: 和合本(简)
+  book: deuteronomy
 verses:
 - metadata:
     chapter: 1

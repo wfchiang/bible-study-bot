@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 耶利米书
+  bible_version: 和合本(简)
+  book: jeremiah
 verses:
 - metadata:
     chapter: 1

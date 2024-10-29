@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 撒母耳记下
+  bible_version: 和合本(简)
+  book: 2samuel
 verses:
 - metadata:
     chapter: 1

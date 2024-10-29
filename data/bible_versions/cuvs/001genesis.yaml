@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 创世纪
+  bible_version: 和合本(简)
+  book: genesis
 verses:
 - metadata:
     chapter: 1

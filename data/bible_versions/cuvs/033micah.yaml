@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 弥迦书
+  bible_version: 和合本(简)
+  book: micah
 verses:
 - metadata:
     chapter: 1

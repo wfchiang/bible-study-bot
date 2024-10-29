@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 玛拉基书
+  bible_version: 和合本(简)
+  book: malachi
 verses:
 - metadata:
     chapter: 1

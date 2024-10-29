@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 阿摩司书
+  bible_version: 和合本(简)
+  book: amos
 verses:
 - metadata:
     chapter: 1

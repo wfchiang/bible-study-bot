@@ -1,6 +1,6 @@
 metadata:
-  version: 和合本(简)
-name: 约拿书
+  bible_version: 和合本(简)
+  book: jonah
 verses:
 - metadata:
     chapter: 1
