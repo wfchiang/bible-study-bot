@@ -7,7 +7,7 @@ def preproc_for_embedding (
     """
     Pre-process a text for embedding 
     """
-    text = re.sub(r"[。，、；：'?!（）\(\)]", " ", text) # remove chinese punctuation
+    text = re.sub(r"[。，、；：'?!（）\(\)〔〕]", " ", text) # remove chinese punctuation
     text = re.sub(r"\s+", " ", text) # shrink spaces  
     text = text.strip() 
 
