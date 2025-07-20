@@ -1,9 +1,9 @@
-from typing_extensions import Unpack
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Dict, Union, List 
 
 
-METADATA_TYPE = Dict[str, Union[str, int, float, List[str], List[int], List[float]]]
+METADATA_TYPE = Dict[
+    str, Union[str, int, float, List[str], List[int], List[float]]]
 
 OLD_TESTAMENT = [
     "genesis", 
@@ -154,30 +154,16 @@ for ot in OLD_TESTAMENT:
 assert(all([ot in BIBLE_BOOKS_CUVS for ot in OLD_TESTAMENT]))
 assert(all([nt in BIBLE_BOOKS_CUVS for nt in NEW_TESTAMENT]))
 
-# ====
-# Text chunk
-# ====
-class TextChunk (BaseModel): 
+
+class TextChunk(BaseModel): 
     text :str 
-    metadata :METADATA_TYPE
+    metadata :METADATA_TYPE = Field(default_factory=dict)
 
-# ====
-# Bible verse
-# ====
-class BibleVerseMetadata (BaseModel): 
-    chapter :int 
-    verse :int 
+class BibleVerse(TextChunk):
+    chapter: int
+    verse: int
 
-class BibleVerse (TextChunk): 
-    pass 
-
-# ====
-# Bible book
-# ====
-class BibleBookMetadata (BaseModel): 
-    bible_version :str 
-    book :str 
-
-class BibleBook (BaseModel):  
-    metadata :METADATA_TYPE
-    verses :List[BibleVerse]
+class BibleBook(BaseModel):
+    verses: List[BibleVerse]
+    book: str
+    version: str

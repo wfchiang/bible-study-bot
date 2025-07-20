@@ -1,55 +1,42 @@
-import os 
 import yaml 
 from pathlib import Path 
-from typing import List, Union
-from .definitions import BibleBook, BIBLE_BOOKS
+from typing import List
+from .definitions import BIBLE_BOOKS, BibleBook
 
 
 def load_bible_book_from_file (
-        bible_book_file :Union[str, Path], 
+        file :Path, 
         encoding :str = "utf-8"
 ) -> BibleBook: 
     """
     Load a BibleBook object from a YAML file
     """
-    # check the parameter 
-    if (not isinstance(bible_book_file, Path)): 
-        bible_book_file = Path(bible_book_file)
-    assert(bible_book_file.is_file()), f"Bible file does not exist: {bible_book_file}"
-
-    with open(bible_book_file, "r", encoding=encoding) as f: 
-        return BibleBook(**yaml.safe_load(f))
+    assert isinstance(file, Path) and file.is_file()
+    with open(file, "r", encoding=encoding) as f: 
+        bible_book = BibleBook(**yaml.safe_load(f))
+        bible_book.verses = sorted(
+            bible_book.verses,
+            key=lambda v: (v.chapter, v.verse))
+        return bible_book
 
 
 def load_bible_from_dir (
-        bible_directory :Union[str, Path]
+        directory :Path
 ) -> List[BibleBook]: 
     """
     Load a Bible, a list of bible books, from a directory
     """
-    # Check the parameters 
-    if (not isinstance(bible_directory, Path)): 
-        bible_directory = Path(bible_directory)
-    assert(bible_directory.is_dir()), f"Bible directory does not exist: {bible_directory}"
-
-    # Load the bible books from the directory 
-    bible_books = [] 
-    for bible_book_file in os.listdir(bible_directory.as_posix()): 
-        bible_books.append(load_bible_book_from_file(bible_book_file)) 
-
+    assert isinstance(directory, Path) and directory.is_dir()
+     
+    books = [load_bible_book_from_file(book_path)
+             for book_path in directory.glob("*.yaml")]
+    
     # Sort the bible books
-    for bb in bible_books: 
-        # Validate that every book is a valid book 
-        if (bb.metadata["book"] not in BIBLE_BOOKS): 
-            assert(False), f"Invalid bible book: {bb.metadata['book']}"
+    books = [bb for bb in books if bb.book in BIBLE_BOOKS]
+    books = sorted(
+        books, key=lambda bb: BIBLE_BOOKS.index(bb.book))
 
-    bible_books = sorted(
-        bible_books, 
-        key=lambda bb: BIBLE_BOOKS.index(bb.metadata["book"])
-    )
-
-    # Return 
-    return bible_books
+    return books
 
 
 def load_verse_context (
