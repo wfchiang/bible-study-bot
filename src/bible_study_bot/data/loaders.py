@@ -1,7 +1,13 @@
 import yaml 
 from pathlib import Path 
 from typing import List
+
 from .definitions import BIBLE_BOOKS, BibleBook
+
+
+def _get_bible_version_from_path(
+        directory: Path) -> str:
+    return directory.stem
 
 
 def load_bible_book_from_file (

@@ -159,11 +159,21 @@ class TextChunk(BaseModel):
     text :str 
     metadata :METADATA_TYPE = Field(default_factory=dict)
 
+
 class BibleVerse(TextChunk):
     chapter: int
     verse: int
 
+
 class BibleBook(BaseModel):
     verses: List[BibleVerse]
     book: str
+
+    @property
+    def text(self) -> str:
+        return " ".join(v.text for v in self.verses)
+    
+
+class Bible(BaseModel):
+    books: List[BibleBook]
     version: str
