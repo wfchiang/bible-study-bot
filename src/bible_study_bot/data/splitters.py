@@ -17,4 +17,8 @@ class HFSemanticSplitter(AbstractSplitter):
             model_name=self.hf_embedding_model_name_or_path,
             model_kwargs={
                 "trust_remote_code": False})
-        self.splitter = SemanticChunker(self.hf_embedding_model)
+        self.splitter = SemanticChunker(
+            self.hf_embedding_model, breakpoint_threshold_type="standard_deviation")
+
+    def split(self, text: str) -> List[str]:
+        return self.splitter.split_text(text)

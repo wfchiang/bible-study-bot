@@ -2,7 +2,7 @@ import yaml
 from pathlib import Path 
 from typing import List
 
-from .definitions import BIBLE_BOOKS, BibleBook
+from .definitions import BIBLE_BOOKS, Bible, BibleBook
 
 
 def _get_bible_version_from_path(
@@ -28,7 +28,7 @@ def load_bible_book_from_file (
 
 def load_bible_from_dir (
         directory :Path
-) -> List[BibleBook]: 
+) -> Bible: 
     """
     Load a Bible, a list of bible books, from a directory
     """
@@ -41,8 +41,12 @@ def load_bible_from_dir (
     books = [bb for bb in books if bb.book in BIBLE_BOOKS]
     books = sorted(
         books, key=lambda bb: BIBLE_BOOKS.index(bb.book))
+    
+    bible = Bible(
+        version=_get_bible_version_from_path(directory),
+        books=books)
 
-    return books
+    return bible
 
 
 def load_verse_context (
