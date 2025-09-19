@@ -1,6 +1,6 @@
-import yaml 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path 
-from typing import List
+import yaml 
 
 from .definitions import BIBLE_BOOKS, Bible, BibleBook
 
@@ -33,9 +33,13 @@ def load_bible_from_dir (
     Load a Bible, a list of bible books, from a directory
     """
     assert isinstance(directory, Path) and directory.is_dir()
-     
-    books = [load_bible_book_from_file(book_path)
-             for book_path in directory.glob("*.yaml")]
+
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(load_bible_book_from_file, book_path)
+                   for book_path in directory.glob("*.yaml")]
+        books = [
+            future.result()
+            for future in futures]
     
     # Sort the bible books
     books = [bb for bb in books if bb.book in BIBLE_BOOKS]
