@@ -155,7 +155,12 @@ assert(all([ot in BIBLE_BOOKS_CUVS for ot in OLD_TESTAMENT]))
 assert(all([nt in BIBLE_BOOKS_CUVS for nt in NEW_TESTAMENT]))
 
 
-class TextChunk(BaseModel): 
+TEXT_CATEGORIES = [
+    "bible", "commentary", "devotional",
+]
+
+
+class TextChunk(BaseModel):
     text :str 
     metadata :METADATA_TYPE = Field(default_factory=dict)
 
