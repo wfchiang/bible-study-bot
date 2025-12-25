@@ -1,5 +1,5 @@
 import os
-import datetime
+import json
 from typing import List
 
 from dotenv import load_dotenv
@@ -84,4 +84,8 @@ if __name__ == "__main__":
     #         {"role": "user", "content": "今天是幾月幾號? 天氣如何?"}
     #     ]
     # })
-    print(result)
+    print(json.dumps(
+        [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in result["messages"]],
+        indent=4,
+        ensure_ascii=False
+    ))
