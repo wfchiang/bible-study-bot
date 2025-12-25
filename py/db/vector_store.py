@@ -1,20 +1,12 @@
 
 import logging
 import uuid
-from pathlib import Path
 from qdrant_client import QdrantClient, models, grpc
-import sys
+from typing import Dict, List, Optional
 
-sys.path.insert(0, str(Path(__file__).parents[1]))
 from data.definitions import TextChunk
 from config import embedding_model, QDRANT_URL, COLLECTION_NAME, embedding_length
 
-# --- Logging Setup ---
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    stream=sys.stdout,
-)
 logger = logging.getLogger("vector_store")
 
 # --- Global instances (initialized once for efficiency) ---
@@ -27,10 +19,12 @@ def create_collection_if_not_exists() -> None:
     Creates the Qdrant collection if it does not already exist.
     """
     try:
-        collections_response: grpc.GetCollectionInfoResponse = qdrant_client.get_collection(collection_name=COLLECTION_NAME)
-        if collections_response.vectors_config:
+        collection_response: grpc.GetCollectionInfoResponse = qdrant_client.get_collection(collection_name=COLLECTION_NAME)
+        collection_status = str(collection_response.status).lower()
+        if collection_status == "green":
             logger.info("Collection '%s' already exists.", COLLECTION_NAME)
             return
+        raise RuntimeError(f"Unrecognized collection status: {collection_status}")
     except Exception as e:
         # Assuming an exception means the collection does not exist.
         # A more specific exception type could be caught if the client library provides it.
@@ -62,3 +56,25 @@ def add_text_chunk(text_chunk: TextChunk) -> None:
         wait=True,
     )
     logger.info("Successfully added chunk with id %s to Qdrant collection '%s'.", point_id, COLLECTION_NAME)
+
+
+def search_text_chunks(text: str, top_k: int = 5, filters: Optional[Dict] = None) -> List[str]:
+    vector = embedding_model.embed_documents([text])[0]
+
+    query_filter = None
+    if filters:
+        conditions = [
+            models.FieldCondition(key=k, match=models.MatchValue(value=v))
+            for k, v in filters.items()
+        ]
+        query_filter = models.Filter(must=conditions)
+
+    search_results = qdrant_client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=vector,
+        query_filter=query_filter,
+        limit=top_k,
+        with_payload=True, with_vectors=False)
+    return [
+        srel.payload["text"]
+        for srel in search_results.points]

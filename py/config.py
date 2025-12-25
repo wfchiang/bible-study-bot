@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 import yaml
@@ -21,13 +21,20 @@ def load_config() -> Dict:
 
 
 def get_embedding_model() -> HuggingFaceEmbeddings:
-    model_name_or_path = get_embedding_model_name()
-    return HuggingFaceEmbeddings(model_name=model_name_or_path)
+    name_or_path, kwargs = get_embedding_model_config()
+    return HuggingFaceEmbeddings(
+        model_name=name_or_path,
+        model_kwargs=kwargs)
 
 
-def get_embedding_model_name() -> str:
+def get_embedding_model_config() -> Tuple[str, Dict]:
+    """
+    Return a tuple of (model_name_or_path, model_kwargs)
+    """
     config = load_config()
-    return config["models"]["embedding"]
+    model_name_or_path = config["models"]["embedding"]["name_or_path"]
+    model_kwargs = config["models"]["embedding"]["kwargs"]
+    return model_name_or_path, model_kwargs
 
 
 def get_vector_store_config() -> Dict[str, Any]:
