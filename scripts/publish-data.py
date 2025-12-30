@@ -30,7 +30,6 @@ def main(
             data = json.loads(line)
             b_chunk = TextChunk(**data)
             add_text_chunk(b_chunk)
-            break
 
 
 if __name__ == "__main__":
