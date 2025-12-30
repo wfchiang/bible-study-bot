@@ -3,4 +3,5 @@ dist/
 docker_volumes/
 
 .env
+local_env.sh
 tmp.*

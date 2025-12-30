@@ -2,14 +2,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
-import dotenv
-
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 import yaml
 
-
-DEFAULT_DOT_ENV_FILE = Path(__file__).parents[1] / ".env"
-dotenv.load_dotenv(DEFAULT_DOT_ENV_FILE)
 
 CONFIG_FILE_PATH = os.environ.get(
     "BSB_CONFIG_PATH", str(Path(__file__).parents[1] / "config.yaml"))
@@ -51,9 +46,7 @@ embedding_model = get_embedding_model()
 vector_store_config = get_vector_store_config()
 
 QDRANT_URL = vector_store_config['client_args']['url']
-QDRANT_API_KEY = None
-if vector_store_config['client_args'].get('token_var'):
-    QDRANT_API_KEY = os.getenv(vector_store_config['client_args']['token_var'])
+QDRANT_API_KEY = os.environ[vector_store_config['client_args']['token_var']]
 COLLECTION_NAME = vector_store_config["collection_name"]
 
 config = load_config()

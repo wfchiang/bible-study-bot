@@ -1,19 +1,39 @@
+import asyncio
+import httpx
 import os
 import json
 from typing import List
 
-from dotenv import load_dotenv
-
 from langchain_core.messages import SystemMessage
+from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, MessagesState, START, END
 from langgraph.prebuilt import ToolNode
 
 from config import config
-from tools import search_bible_chunks
 
-load_dotenv()
+
+class CustomHTTPClient(httpx.Client):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
+        super().__init__(*args, **kwargs)
+
+class CustomHTTPAsyncClient(httpx.AsyncClient):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
+        super().__init__(*args, **kwargs)
+
+httpx_client = CustomHTTPClient()
+httpx_async_client = CustomHTTPAsyncClient()
+
+mcp_client = MultiServerMCPClient({
+    "service": {
+        "transport": config["mcp"]["server"]["transport"],
+        "url": config["mcp"]["client"]["url"],
+    }
+})
+
 
 # 1. Global variable for the system prompt. You can edit this!
 SYSTEM_PROMPT = config["system_prompt"]
@@ -33,11 +53,12 @@ def check_env_vars() -> None:
 def create_agent() -> StateGraph:
     check_env_vars()
 
-    tools: List = []
-    tools += create_web_search_tool()
-    tools.append(search_bible_chunks)
+    mcp_tools = asyncio.run(mcp_client.get_tools())
+    tools: List = mcp_tools + create_web_search_tool()
 
-    llm = ChatOpenAI(model="gpt-4o")
+    llm = ChatOpenAI(model="gpt-4o",
+                     http_client=httpx_client,
+                     http_async_client=httpx_async_client,)
     llm_with_tools = llm.bind_tools(tools)
 
     def call_model(state: MessagesState):
@@ -74,16 +95,11 @@ def create_web_search_tool() -> List:
 
 if __name__ == "__main__":
     agent = create_agent()
-    result = agent.invoke({
+    result = asyncio.run(agent.ainvoke({
         "messages": [
-            {"role": "user", "content": "甚麼是 '義人'"}
+            {"role": "user", "content": "遵守神的命令會帶來真正的喜樂嗎?為什麼?"}
         ]
-    })
-    # result = agent.invoke({
-    #     "messages": [
-    #         {"role": "user", "content": "今天是幾月幾號? 天氣如何?"}
-    #     ]
-    # })
+    }))
     print(json.dumps(
         [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in result["messages"]],
         indent=4,

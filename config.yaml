@@ -4,6 +4,12 @@ data:
 llm:
   provider: openai
   model: gpt-4o
+mcp:
+  server:
+    transport: streamable-http
+    port: 8087
+  client:
+    url: http://localhost:8087/mcp
 models:
   embedding:
     name_or_path: DMetaSoul/Dmeta-embedding-zh
