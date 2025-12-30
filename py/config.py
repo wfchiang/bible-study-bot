@@ -2,9 +2,14 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
+import dotenv
+
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 import yaml
 
+
+DEFAULT_DOT_ENV_FILE = Path(__file__).parents[1] / ".env"
+dotenv.load_dotenv(DEFAULT_DOT_ENV_FILE)
 
 CONFIG_FILE_PATH = os.environ.get(
     "BSB_CONFIG_PATH", str(Path(__file__).parents[1] / "config.yaml"))

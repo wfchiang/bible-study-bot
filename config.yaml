@@ -26,7 +26,7 @@ system_prompt: |
 vector_store: 
   provider: qdrant
   client_args:
-    # url: http://localhost:6333
-    url: https://aea781ae-b85a-4ebf-b814-0887595e6114.us-east4-0.gcp.cloud.qdrant.io
+    url: http://localhost:6333
+    # url: https://aea781ae-b85a-4ebf-b814-0887595e6114.us-east4-0.gcp.cloud.qdrant.io:6333
     token_var: QDRANT_API_KEY
   collection_name: bible-study-bot

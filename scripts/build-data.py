@@ -47,12 +47,8 @@ def main(
                 book_chunks = split_bible_book(bible_book)
                 for b_chunk in book_chunks:
                     assert isinstance(b_chunk, TextChunk)
-                    data_obj = b_chunk.model_dump()
-                    data_obj = {
-                        "data_build_id": get_data_build_id(),
-                        **data_obj
-                    }
-                    f.write(json.dumps(data_obj, ensure_ascii=False) + "\n")
+                    b_chunk.metadata["data_build_id"] = get_data_build_id()
+                    f.write(json.dumps(b_chunk.model_dump(), ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":

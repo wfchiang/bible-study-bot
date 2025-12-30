@@ -5,13 +5,16 @@ from qdrant_client import QdrantClient, models, grpc
 from typing import Dict, List, Optional
 
 from data.definitions import TextChunk
-from config import embedding_model, QDRANT_URL, COLLECTION_NAME, embedding_length
+from config import embedding_model, QDRANT_API_KEY, QDRANT_URL, COLLECTION_NAME, embedding_length
 
 logger = logging.getLogger("vector_store")
 
 # --- Global instances (initialized once for efficiency) ---
 # Initialize the Qdrant client.
-qdrant_client = QdrantClient(url=QDRANT_URL)
+qdrant_client = QdrantClient(
+    url=QDRANT_URL,
+    api_key=QDRANT_API_KEY,
+    https=QDRANT_URL.startswith("https://"),)
 
 
 def create_collection_if_not_exists() -> None:
