@@ -45,7 +45,10 @@ def get_vector_store_config() -> Dict[str, Any]:
 embedding_model = get_embedding_model()
 vector_store_config = get_vector_store_config()
 
-QDRANT_URL = f"{vector_store_config['client_args']['schema']}://{vector_store_config['client_args']['host']}:{vector_store_config['client_args']['port']}"
+QDRANT_URL = vector_store_config['client_args']['url']
+QDRANT_API_KEY = None
+if vector_store_config['client_args'].get('token_var'):
+    QDRANT_API_KEY = os.getenv(vector_store_config['client_args']['token_var'])
 COLLECTION_NAME = vector_store_config["collection_name"]
 
 config = load_config()

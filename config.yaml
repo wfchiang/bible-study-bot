@@ -25,8 +25,8 @@ system_prompt: |
   2. 回答應該基於聖經的教導，並一定要引用相關經文來支持你的回答。
 vector_store: 
   provider: qdrant
-  client_args: 
-    schema: http
-    host: localhost
-    port: 6333
+  client_args:
+    # url: http://localhost:6333
+    url: https://aea781ae-b85a-4ebf-b814-0887595e6114.us-east4-0.gcp.cloud.qdrant.io
+    token_var: QDRANT_API_KEY
   collection_name: bible-study-bot
