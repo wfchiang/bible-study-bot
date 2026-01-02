@@ -19,6 +19,7 @@ models:
     name_or_path: BAAI/bge-reranker-base
     kwargs:
       local_files_only: false
+    threshold: 0.5
 system_prompt: |
   你是一位聖經學習助手，專注於幫助使用者理解和學習聖經內容。請根據使用者的問題，本著聖經的信息來回到以聖經為出發點的答案。
   你的信仰如下:

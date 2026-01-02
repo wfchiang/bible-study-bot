@@ -70,7 +70,7 @@ def add_text_chunk(text_chunk: TextChunk) -> None:
     logger.info("Successfully added chunk with id %s to Qdrant collection '%s'.", point_id, vs_collection_name)
 
 
-def search_text_chunks(text: str, top_k: int = 30, filters: dict | None = None) -> list[TextChunk]:
+def search_text_chunks(text: str, top_k: int = 30, filters: dict | None = None) -> list[dict]:
     vector = embedding_model.embed_documents([text])[0]
 
     query_filter = None
@@ -90,5 +90,5 @@ def search_text_chunks(text: str, top_k: int = 30, filters: dict | None = None) 
     points_payload = [
         srel.payload
         for srel in search_results.points]
-    assert isinstance(points_payload[0], dict)
+    assert all(isinstance(pp, dict) for pp in points_payload)
     return points_payload
