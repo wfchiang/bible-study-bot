@@ -56,7 +56,7 @@ def create_agent() -> StateGraph:
     mcp_tools = asyncio.run(mcp_client.get_tools())
     tools: List = mcp_tools + create_web_search_tool()
 
-    llm = ChatOpenAI(model="gpt-4o",
+    llm = ChatOpenAI(model="gpt-4.1-mini-2025-04-14",
                      http_client=httpx_client,
                      http_async_client=httpx_async_client,)
     llm_with_tools = llm.bind_tools(tools)
@@ -95,6 +95,7 @@ def create_web_search_tool() -> List:
 
 if __name__ == "__main__":
     agent = create_agent()
+
     result = asyncio.run(agent.ainvoke({
         "messages": [
             {"role": "user", "content": "遵守神的命令會帶來真正的喜樂嗎?為什麼?"}

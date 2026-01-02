@@ -1,20 +1,29 @@
 
 import logging
 import uuid
+import os
+
 from qdrant_client import QdrantClient, models, grpc
-from typing import Dict, List, Optional
 
 from data.definitions import TextChunk
-from config import embedding_model, QDRANT_API_KEY, QDRANT_URL, COLLECTION_NAME, embedding_length
+from config import get_embedding_model, load_config, embedding_length
+
 
 logger = logging.getLogger("vector_store")
+
+config = load_config()["vector_store"]
+embedding_model = get_embedding_model()
+
+vs_url = config['client_args']['url']
+vs_api_key = os.environ[config['client_args']['token_var']]
+vs_collection_name = config["collection_name"]
 
 # --- Global instances (initialized once for efficiency) ---
 # Initialize the Qdrant client.
 qdrant_client = QdrantClient(
-    url=QDRANT_URL,
-    api_key=QDRANT_API_KEY,
-    https=QDRANT_URL.startswith("https://"),)
+    url=vs_url,
+    api_key=vs_api_key,
+    https=vs_url.startswith("https://"),)
 
 
 def create_collection_if_not_exists() -> None:
@@ -22,10 +31,10 @@ def create_collection_if_not_exists() -> None:
     Creates the Qdrant collection if it does not already exist.
     """
     try:
-        collection_response: grpc.GetCollectionInfoResponse = qdrant_client.get_collection(collection_name=COLLECTION_NAME)
+        collection_response: grpc.GetCollectionInfoResponse = qdrant_client.get_collection(collection_name=vs_collection_name)
         collection_status = str(collection_response.status).lower()
         if collection_status == "green":
-            logger.info("Collection '%s' already exists.", COLLECTION_NAME)
+            logger.info("Collection '%s' already exists.", vs_collection_name)
             return
         raise RuntimeError(f"Unrecognized collection status: {collection_status}")
     except Exception as e:
@@ -33,15 +42,15 @@ def create_collection_if_not_exists() -> None:
         # A more specific exception type could be caught if the client library provides it.
         logger.error("Error checking collection existence: assuming it does not exist.", e, exc_info=True)
 
-    logger.info("Collection '%s' does not exist. Creating it...", COLLECTION_NAME)
+    logger.info("Collection '%s' does not exist. Creating it...", vs_collection_name)
     qdrant_client.create_collection(
-        collection_name=COLLECTION_NAME,
+        collection_name=vs_collection_name,
         vectors_config=models.VectorParams(
-            size=embedding_length(),
+            size=embedding_length(embedding_model),
             distance=models.Distance.COSINE,
         ),
     )
-    logger.info("Collection '%s' created successfully.", COLLECTION_NAME)
+    logger.info("Collection '%s' created successfully.", vs_collection_name)
 
 
 def add_text_chunk(text_chunk: TextChunk) -> None:
@@ -54,14 +63,14 @@ def add_text_chunk(text_chunk: TextChunk) -> None:
     point_id = str(uuid.uuid4())
 
     qdrant_client.upsert(
-        collection_name=COLLECTION_NAME,
+        collection_name=vs_collection_name,
         points=[models.PointStruct(id=point_id, vector=vector, payload=payload)],
         wait=True,
     )
-    logger.info("Successfully added chunk with id %s to Qdrant collection '%s'.", point_id, COLLECTION_NAME)
+    logger.info("Successfully added chunk with id %s to Qdrant collection '%s'.", point_id, vs_collection_name)
 
 
-def search_text_chunks(text: str, top_k: int = 5, filters: Optional[Dict] = None) -> List[str]:
+def search_text_chunks(text: str, top_k: int = 30, filters: dict | None = None) -> list[TextChunk]:
     vector = embedding_model.embed_documents([text])[0]
 
     query_filter = None
@@ -73,11 +82,13 @@ def search_text_chunks(text: str, top_k: int = 5, filters: Optional[Dict] = None
         query_filter = models.Filter(must=conditions)
 
     search_results = qdrant_client.query_points(
-        collection_name=COLLECTION_NAME,
+        collection_name=vs_collection_name,
         query=vector,
         query_filter=query_filter,
         limit=top_k,
         with_payload=True, with_vectors=False)
-    return [
-        srel.payload["text"]
+    points_payload = [
+        srel.payload
         for srel in search_results.points]
+    assert isinstance(points_payload[0], dict)
+    return points_payload

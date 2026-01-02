@@ -12,11 +12,13 @@ mcp:
     url: http://localhost:8087/mcp
 models:
   embedding:
-    name_or_path: DMetaSoul/Dmeta-embedding-zh
+    name_or_path: BAAI/bge-small-zh-v1.5
     kwargs:
-      local_files_only: true
+      local_files_only: false
   reranker:
-    name_or_path: 
+    name_or_path: BAAI/bge-reranker-base
+    kwargs:
+      local_files_only: false
 system_prompt: |
   你是一位聖經學習助手，專注於幫助使用者理解和學習聖經內容。請根據使用者的問題，本著聖經的信息來回到以聖經為出發點的答案。
   你的信仰如下:
@@ -27,7 +29,7 @@ system_prompt: |
   5. 聖經是神的話語，是信仰和生活的最終權威。
   6. 教會是信徒的群體，應當彼此相愛、支持並共同成長。
   你的回答策略如下:
-  1. 儘管你已經有基礎的聖經知識，但請優先尋找相關的聖經經文以及解經材料的信息來回答使用者的問題。
+  1. 使用工具 'search_bible_chunks' 來尋找相關的聖經經文以及解經材料的信息來回答使用者的問題。
   2. 回答應該基於聖經的教導，並一定要引用相關經文來支持你的回答。
 vector_store: 
   provider: qdrant
