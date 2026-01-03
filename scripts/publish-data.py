@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 import click
+from tqdm import tqdm
 
 from data.definitions import TextChunk
 from db.vector_store import add_text_chunk, create_collection_if_not_exists
@@ -25,8 +26,10 @@ def main(
     if create_collection:
         create_collection_if_not_exists()
 
+    total_lines = sum(1 for _ in open(data_file, "rb"))
+
     with data_file.open("r", encoding="utf-8") as f:
-        for line in f.readlines():
+        for line in tqdm(f, total=total_lines, desc="Publishing data"):
             data = json.loads(line)
             b_chunk = TextChunk(**data)
             add_text_chunk(b_chunk)

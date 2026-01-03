@@ -37,6 +37,23 @@ def _get_verses_text(verses: List[BibleVerse]) -> str:
 def split_bible_book(
         bible_book: BibleBook,
         chunk_size: int =400, overlap: int = 30) -> List[TextChunk]:
+
+    def _encode_verse_range(
+            from_verse: BibleVerse, to_verse: BibleVerse) -> str:
+        from_chapter = from_verse.chapter
+        to_chapter = to_verse.chapter
+        assert from_verse.chapter <= to_verse.chapter
+        from_v = from_verse.verse
+        to_v = to_verse.verse
+        if from_chapter == to_chapter:
+            assert from_v <= to_v
+            if from_v == to_v:
+                return f"{bible_book.book} {from_chapter}:{from_v}"
+            else:
+                return f"{bible_book.book} {from_chapter}:{from_v}-{to_v}"
+        else:
+            return f"{bible_book.book} {from_chapter}:{from_v}-{to_chapter}:{to_v}"
+
     chunks = []
     verse_cache = []
     for verse in bible_book.verses:
@@ -47,9 +64,8 @@ def split_bible_book(
                 text=cached_text,
                 metadata={
                     "category": "bible",
-                    "book": bible_book.book,
-                    "chapter": verse.chapter,
-                    "verses": [v.verse for v in verse_cache]}))
+                    "range": _encode_verse_range(
+                        verse_cache[0], verse_cache[-1]),}))
             while len(verse_cache) > 0 and len(_get_verses_text(verse_cache)) > overlap:
                 verse_cache.pop(0)
         verse_cache.append(verse)
@@ -57,7 +73,7 @@ def split_bible_book(
         chunks.append(TextChunk(
             text=_get_verses_text(verse_cache),
             metadata={
-                "book": bible_book.book,
-                "chapter": verse_cache[0].chapter,
-                "verses": [v.verse for v in verse_cache]}))
+                "category": "bible",
+                "range": _encode_verse_range(
+                    verse_cache[0], verse_cache[-1]),}))
     return chunks

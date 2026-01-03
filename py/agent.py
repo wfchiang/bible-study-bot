@@ -24,16 +24,6 @@ class CustomHTTPAsyncClient(httpx.AsyncClient):
         kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
         super().__init__(*args, **kwargs)
 
-httpx_client = CustomHTTPClient()
-httpx_async_client = CustomHTTPAsyncClient()
-
-mcp_client = MultiServerMCPClient({
-    "service": {
-        "transport": config["mcp"]["server"]["transport"],
-        "url": config["mcp"]["client"]["url"],
-    }
-})
-
 
 # 1. Global variable for the system prompt. You can edit this!
 SYSTEM_PROMPT = config["system_prompt"]
@@ -50,10 +40,20 @@ def check_env_vars() -> None:
         raise EnvironmentError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
 
-def create_agent() -> StateGraph:
+async def create_agent() -> StateGraph:
     check_env_vars()
 
-    mcp_tools = asyncio.run(mcp_client.get_tools())
+    httpx_client = CustomHTTPClient()
+    httpx_async_client = CustomHTTPAsyncClient()
+
+    mcp_client = MultiServerMCPClient({
+        "service": {
+            "transport": config["mcp"]["server"]["transport"],
+            "url": config["mcp"]["client"]["url"],
+        }
+    })
+
+    mcp_tools = await mcp_client.get_tools()
     tools: List = mcp_tools + create_web_search_tool()
 
     llm = ChatOpenAI(model="gpt-4.1-mini-2025-04-14",
@@ -94,15 +94,17 @@ def create_web_search_tool() -> List:
 
 
 if __name__ == "__main__":
-    agent = create_agent()
+    async def main():
+        agent = await create_agent()
 
-    result = asyncio.run(agent.ainvoke({
-        "messages": [
-            {"role": "user", "content": "遵守神的命令會帶來真正的喜樂嗎?為什麼?"}
-        ]
-    }))
-    print(json.dumps(
-        [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in result["messages"]],
-        indent=4,
-        ensure_ascii=False
-    ))
+        result = await agent.ainvoke({
+            "messages": [
+                {"role": "user", "content": "遵守神的命令會帶來真正的喜樂嗎?為什麼?"}
+            ]
+        })
+        print(json.dumps(
+            [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in result["messages"]],
+            indent=4,
+            ensure_ascii=False
+        ))
+    asyncio.run(main())

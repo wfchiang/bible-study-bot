@@ -22,7 +22,7 @@ reranker_threshold = config["models"]["reranker"].get("threshold", 0.5)
 async def search_bible_chunks(
         query: str,
         threshold: float = reranker_threshold,
-        top_k: int = 10) -> list[str]:
+        top_k: int = 10) -> list[dict]:
     """
     Search for Bible verses or text chunks relevant to the query.
     Use this tool to find relevant scripture when the user asks about specific topics, verses, or theological concepts in the Bible.
@@ -42,14 +42,14 @@ async def search_bible_chunks(
         query=query, documents=points_text)
     reranker_result = [
         rr for rr in reranker_result if rr["score"] >= threshold]
-    reranked_text = [
-        text_chunks[rr["corpus_id"]]["text"]
+
+    ranked_bible_chunks = [
+        text_chunks[rr["corpus_id"]]
         for rr in reranker_result]
-    logger.info("Reranked to %s text chunks after applying threshold %.2f",
-                len(reranked_text), threshold)
-    if len(reranked_text) > top_k:
-        reranked_text = reranked_text[:top_k]
-    return reranked_text
+    if len(ranked_bible_chunks) > top_k:
+        ranked_bible_chunks = ranked_bible_chunks[:top_k]
+    logger.info("Returning %s ranked Bible chunks", len(ranked_bible_chunks))
+    return ranked_bible_chunks
 
 
 if __name__ == "__main__":
