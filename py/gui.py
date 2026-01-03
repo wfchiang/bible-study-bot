@@ -23,19 +23,33 @@ if prompt := st.chat_input("Ask a question about the Bible..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("assistant"):
+        status_container = st.status("Thinking...", expanded=True)
         message_placeholder = st.empty()
 
         async def stream_chat():
             agent = await create_agent()
             inputs = {"messages": st.session_state.messages}
             full_response = ""
+            
             async for event in agent.astream_events(inputs, version="v2"):
-                if (event["event"] == "on_chat_model_stream" and 
+                event_type = event["event"]
+                
+                if event_type == "on_tool_start":
+                    status_container.write(f"**Calling tool:** `{event['name']}`")
+                elif event_type == "on_tool_end":
+                    status_container.write(f"**Tool output:**")
+                    status_container.write(event["data"].get("output"))
+
+                if (event_type == "on_chat_model_stream" and 
                     event["metadata"].get("langgraph_node") == "agent"):
                     chunk = event["data"]["chunk"]
                     if hasattr(chunk, "content") and chunk.content:
+                        print(f">> {chunk.content}")
                         full_response += chunk.content
                         message_placeholder.markdown(full_response + "▌")
+            
+            status_container.update(label="Finished thinking", state="complete", expanded=False)
+
             message_placeholder.markdown(full_response)
             return full_response
 
