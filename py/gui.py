@@ -1,5 +1,8 @@
 import asyncio
+
+from langchain.messages import AIMessage
 import streamlit as st
+
 from agent import create_agent
 
 # Page configuration
@@ -29,7 +32,7 @@ if prompt := st.chat_input("Ask a question about the Bible..."):
         async def stream_chat():
             agent = await create_agent()
             inputs = {"messages": st.session_state.messages}
-            full_response = ""
+            final_response = "(thinking...)"
             
             async for event in agent.astream_events(inputs, version="v2"):
                 event_type = event["event"]
@@ -37,21 +40,17 @@ if prompt := st.chat_input("Ask a question about the Bible..."):
                 if event_type == "on_tool_start":
                     status_container.write(f"**Calling tool:** `{event['name']}`")
                 elif event_type == "on_tool_end":
-                    status_container.write(f"**Tool output:**")
+                    status_container.write("**Tool output:**")
                     status_container.write(event["data"].get("output"))
-
-                if (event_type == "on_chat_model_stream" and 
-                    event["metadata"].get("langgraph_node") == "agent"):
-                    chunk = event["data"]["chunk"]
-                    if hasattr(chunk, "content") and chunk.content:
-                        print(f">> {chunk.content}")
-                        full_response += chunk.content
-                        message_placeholder.markdown(full_response + "▌")
+                elif (event_type == "on_chain_end" and "data" in event
+                      and "output" in event["data"] and "messages" in event["data"]["output"]
+                      and len(event["data"]["output"]["messages"]) > 0
+                      and isinstance(event["data"]["output"]["messages"][-1], AIMessage)):
+                    final_response = event["data"]["output"]["messages"][-1].content
             
             status_container.update(label="Finished thinking", state="complete", expanded=False)
-
-            message_placeholder.markdown(full_response)
-            return full_response
+            message_placeholder.markdown(final_response)
+            return final_response
 
         try:
             response_content = asyncio.run(stream_chat())
