@@ -1,7 +1,6 @@
 from abc import ABC
 from typing import List
 
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from .definitions import BibleBook, BibleVerse, TextChunk

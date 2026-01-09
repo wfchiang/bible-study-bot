@@ -1,6 +1,7 @@
 __pycache__/
 dist/
 docker_volumes/
+venv/
 
 .env
 local_env.sh

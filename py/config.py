@@ -1,41 +1,22 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, Tuple
 
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-from sentence_transformers import CrossEncoder
+from langchain_openai import OpenAIEmbeddings
 import yaml
 
 
-CONFIG_FILE_PATH = os.environ.get(
+# Load configuration
+config_file_path = os.environ.get(
     "BSB_CONFIG_PATH", str(Path(__file__).parents[1] / "config.yaml"))
+config = None
+with open(config_file_path, "r", encoding="utf-8") as f:
+    config = yaml.safe_load(f)
 
 
-def embedding_length(
-        embedding_model: HuggingFaceEmbeddings) -> int:
-    emb = embedding_model.embed_query("This is a test")
-    return len(emb)
+# Load the embedding model
+embedding_model = OpenAIEmbeddings(
+        model=config["embedding"]["openai_model"],
+        chunk_size=config["embedding"]["openai_batch_size"],
+        max_retries=config["embedding"]["openai_max_retries"])
 
-
-def load_config() -> Dict:
-    with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
-
-
-def get_embedding_model() -> HuggingFaceEmbeddings:
-    config = load_config()
-    name_or_path = config["models"]["embedding"]["name_or_path"]
-    kwargs = config["models"]["embedding"]["kwargs"]
-    return HuggingFaceEmbeddings(
-        model_name=name_or_path,
-        model_kwargs=kwargs)
-
-
-def get_reranker_model() -> CrossEncoder:
-    config = load_config()
-    name_or_path = config["models"]["reranker"]["name_or_path"]
-    kwargs = config["models"]["reranker"]["kwargs"]
-    return CrossEncoder(model_name=name_or_path, **kwargs)
-
-
-config = load_config()
+embedding_length = len(embedding_model.embed_query("This is a test"))

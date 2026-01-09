@@ -1,0 +1,7 @@
+fastmcp
+langchain
+langchain_mcp_adapters
+langchain_openai
+langchain_tavily
+qdrant-client
+streamlit

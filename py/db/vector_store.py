@@ -1,4 +1,3 @@
-
 import logging
 import uuid
 import os
@@ -6,17 +5,15 @@ import os
 from qdrant_client import QdrantClient, models, grpc
 
 from data.definitions import TextChunk
-from config import get_embedding_model, load_config, embedding_length
+from config import config, embedding_length, embedding_model
 
 
 logger = logging.getLogger("vector_store")
 
-config = load_config()["vector_store"]
-embedding_model = get_embedding_model()
-
-vs_url = config['client_args']['url']
-vs_api_key = os.environ[config['client_args']['token_var']]
-vs_collection_name = config["collection_name"]
+vs_config = config["vector_store"]
+vs_url = vs_config['client_args']['url']
+vs_api_key = os.environ[vs_config['client_args']['token_var']]
+vs_collection_name = vs_config["collection_name"]
 
 # --- Global instances (initialized once for efficiency) ---
 # Initialize the Qdrant client.
@@ -46,7 +43,7 @@ def create_collection_if_not_exists() -> None:
     qdrant_client.create_collection(
         collection_name=vs_collection_name,
         vectors_config=models.VectorParams(
-            size=embedding_length(embedding_model),
+            size=embedding_length,
             distance=models.Distance.COSINE,
         ),
     )
