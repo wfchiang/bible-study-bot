@@ -177,8 +177,9 @@ class BibleBook(BaseModel):
     @property
     def text(self) -> str:
         return " ".join(v.text for v in self.verses)
-    
+
 
 class Bible(BaseModel):
     books: List[BibleBook]
     version: str
+

@@ -5,6 +5,7 @@ import fastmcp
 
 from config import config
 from data.definitions import BibleBook, BibleVerse
+from data.utils import make_bible_quote
 from data.loaders import load_bible_from_dir
 from db.vector_store import search_text_chunks
 
@@ -23,47 +24,54 @@ for bible_version_path in config["data"]["bible_versions"]:
 assert len(bible_versions) > 0
 
 
-# @mcp_app.tool(
-#         name="get_bible_verses",
-#         description="提取特定的圣经经文或经文范围。")
-# async def get_bible_verses(
-#         book: str,
-#         from_chapter: int,
-#         from_verse: int,
-#         to_chapter: int | None = None,
-#         to_verse: int | None = None,
-#         version: str | None = None) -> dict:
-#     to_chapter = to_chapter or from_chapter
-#     to_verse = to_verse or from_verse
+@mcp_app.tool(
+        name="get_bible_verses",
+        description="提取特定的圣经经文或经文范围。")
+async def get_bible_verses(
+        book: str,
+        from_chapter: int,
+        from_verse: int,
+        to_chapter: int | None = None,
+        to_verse: int | None = None,
+        version: str | None = None) -> dict:
+    to_chapter = to_chapter or from_chapter
+    to_verse = to_verse or from_verse
 
-#     assert 1 <= from_chapter <= to_chapter
-#     assert 1 <= from_verse and 1 <= to_verse
-#     if from_chapter == to_chapter:
-#         assert from_verse <= to_verse
+    assert 1 <= from_chapter <= to_chapter
+    assert 1 <= from_verse and 1 <= to_verse
+    if from_chapter == to_chapter:
+        assert from_verse <= to_verse
 
-#     version = version or bible_versions.keys()[0]
-#     bible_version = bible_versions[version]
+    version = version or list(bible_versions.keys())[0]
+    bible_version = bible_versions[version]
 
-#     bible_book = None
-#     for bb in bible_version.books:
-#         if bb.book == book:
-#             bible_book = bb
-#             break
-#     assert isinstance(bible_book, BibleBook)
+    bible_book = None
+    for bb in bible_version.books:
+        if bb.book == book:
+            bible_book = bb
+            break
+    assert isinstance(bible_book, BibleBook)
 
-#     from_bible_verse = None
-#     to_bible_verse = None
-#     for bv in bible_book.verses:
-#         if from_bible_verse is None:
-#             if bv.chapter == from_chapter and bv.verse == from_verse:
-#                 from_bible_verse = bv
-#         if to_bible_verse is None:
-#             if bv.chapter == to_chapter and bv.verse == to_verse:
-#                 to_bible_verse = bv
-#         if isinstance(from_bible_verse, BibleVerse) and isinstance(to_bible_verse, BibleVerse)
-#             break
-#     assert isinstance(from_bible_verse, BibleVerse)
-#     assert isinstance(to_bible_verse, BibleVerse)
+    got_from_v = False
+    got_to_v = False
+    verses = []
+    for bv in bible_book.verses:
+        if not got_from_v:
+            if bv.chapter == from_chapter and bv.verse == from_verse:
+                got_from_v = True
+        if got_from_v:
+            verses.append(bv)
+        if not got_to_v:
+            if bv.chapter == to_chapter and bv.verse == to_verse:
+                got_to_v = True
+        if got_to_v:
+            break
+    assert got_from_v, "Invalid 'from' verse"
+    assert got_to_v, "Invalid 'to' verse"
+
+    bible_quote = make_bible_quote(
+        book=book, verses=verses)
+    return bible_quote.model_dump()
 
 
 @mcp_app.tool(
