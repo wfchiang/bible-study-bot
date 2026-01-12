@@ -34,44 +34,55 @@ async def get_bible_verses(
         to_chapter: int | None = None,
         to_verse: int | None = None,
         version: str | None = None) -> dict:
-    to_chapter = to_chapter or from_chapter
-    to_verse = to_verse or from_verse
+    try:
+        book = book.lower()
+        to_chapter = to_chapter or from_chapter
+        to_verse = to_verse or from_verse
+        logger.info("Getting Bible verses: %s %d:%d to %d:%d (version: %s)",
+                    book, from_chapter, from_verse, to_chapter, to_verse,
+                    version or "default")
 
-    assert 1 <= from_chapter <= to_chapter
-    assert 1 <= from_verse and 1 <= to_verse
-    if from_chapter == to_chapter:
-        assert from_verse <= to_verse
+        assert 1 <= from_chapter <= to_chapter
+        assert 1 <= from_verse and 1 <= to_verse
+        if from_chapter == to_chapter:
+            assert from_verse <= to_verse
 
-    version = version or list(bible_versions.keys())[0]
-    bible_version = bible_versions[version]
+        version = version or list(bible_versions.keys())[0]
+        bible_version = bible_versions[version]
 
-    bible_book = None
-    for bb in bible_version.books:
-        if bb.book == book:
-            bible_book = bb
-            break
-    assert isinstance(bible_book, BibleBook)
+        bible_book = None
+        for bb in bible_version.books:
+            if bb.book == book:
+                bible_book = bb
+                break
+        assert isinstance(bible_book, BibleBook), "Invalid book name. Valid names are: " + ", ".join([bb.book for bb in bible_version.books])
 
-    got_from_v = False
-    got_to_v = False
-    verses = []
-    for bv in bible_book.verses:
-        if not got_from_v:
-            if bv.chapter == from_chapter and bv.verse == from_verse:
-                got_from_v = True
-        if got_from_v:
-            verses.append(bv)
-        if not got_to_v:
-            if bv.chapter == to_chapter and bv.verse == to_verse:
-                got_to_v = True
-        if got_to_v:
-            break
-    assert got_from_v, "Invalid 'from' verse"
-    assert got_to_v, "Invalid 'to' verse"
+        got_from_v = False
+        got_to_v = False
+        verses = []
+        for bv in bible_book.verses:
+            if not got_from_v:
+                if bv.chapter == from_chapter and bv.verse == from_verse:
+                    got_from_v = True
+            if got_from_v:
+                verses.append(bv)
+            if not got_to_v:
+                if bv.chapter == to_chapter and bv.verse == to_verse:
+                    got_to_v = True
+            if got_to_v:
+                break
+        assert got_from_v, "Invalid 'from' verse"
+        assert got_to_v, "Invalid 'to' verse"
 
-    bible_quote = make_bible_quote(
-        book=book, verses=verses)
-    return bible_quote.model_dump()
+        bible_quote = make_bible_quote(
+            book=book, verses=verses)
+        return bible_quote.model_dump()
+
+    except Exception as e:
+        logger.error("Error in get_bible_verses: %s", e)
+        return {
+            "error": str(e)
+        }
 
 
 @mcp_app.tool(
