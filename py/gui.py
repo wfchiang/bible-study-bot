@@ -6,7 +6,10 @@ import streamlit as st
 from agent import create_agent
 
 # Page configuration
-st.set_page_config(page_title="Bible Study Bot", page_icon="📖")
+st.set_page_config(
+    page_title="Bible Study Bot",
+    page_icon="📖",
+    layout="wide")
 st.title("📖 Bible Study Bot")
 
 # Initialize chat history
