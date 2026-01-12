@@ -8,6 +8,7 @@ from data.definitions import BibleBook, BibleVerse
 from data.utils import make_bible_quote
 from data.loaders import load_bible_from_dir
 from db.vector_store import search_text_chunks
+from workflows import rank_docs
 
 
 logging.basicConfig(level=logging.INFO)
@@ -90,7 +91,7 @@ async def get_bible_verses(
         description="搜寻与查找相关的圣经经文或文本片段，以回答用户关于特定主题、经文或神学概念的问题。")
 async def search_bible_chunks(
         query: str,
-        top_k: int = 10) -> list[dict]:
+        min_score: float = 3.0, top_k: int = 5) -> dict:
     """
     Search for Bible verses or text chunks relevant to the query.
     Use this tool to find relevant scripture when the user asks about specific topics, verses, or theological concepts in the Bible.
@@ -101,14 +102,32 @@ async def search_bible_chunks(
     text_chunks = search_text_chunks(
         query,
         filters={"category": "bible"},
-        top_k=top_k * 5,)
+        top_k=top_k * 2,)
     logger.info("Found %s text chunks", len(text_chunks))
 
-    ranked_bible_chunks = text_chunks
+    text_list = [tc["text"] for tc in text_chunks]
+    ranked_docs = rank_docs(query=query, docs=text_list)
+    if "error" in ranked_docs:
+        logger.error("Error in ranking docs: %s", ranked_docs["error"])
+        return {"error": ranked_docs["error"]}
+    assert "ranked" in ranked_docs, "Invalid ranked docs format"
+
+    logger.info("Ranking text chunks")
+    ranked_bible_chunks = []
+    for rd in ranked_docs.get("ranked", []):
+        try:
+            index = int(rd.get("index"))
+            score = float(rd.get("score", 0.0))
+            if 0 <= index < len(text_chunks) and score >= min_score:
+                ranked_bible_chunks.append(text_chunks[index])
+        except Exception as e:
+            logger.error("Error in ranking docs: %s", e)
+
     if len(ranked_bible_chunks) > top_k:
         ranked_bible_chunks = ranked_bible_chunks[:top_k]
     logger.info("Returning %s ranked Bible chunks", len(ranked_bible_chunks))
-    return ranked_bible_chunks
+    return {
+        "bible_chunks": ranked_bible_chunks}
 
 
 if __name__ == "__main__":
