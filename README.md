@@ -1,9 +1,46 @@
-# Bible Study Bot 
+# Bible Study Bot
 
-This is a chatbot helping people to study bible, and answer bible related questions. 
+The **Bible Study Bot** is an AI-powered assistant designed to facilitate various Bible study tasks. It specializes in answering questions related to the Bible and Christianity, as well as assisting in the design and creation of Bible study materials.
 
-## Installation
+Currently, the primary language supported is **Mandarin Chinese**, with plans to expand support to other languages in the future.
 
-```BASH
-pip uninstall -y bible-study-bot && rm -rf dist && poetry build && pip install --no-deps ./dist/bible_study_bot-0.0.1-py3-none-any.whl
+## Developer Notes
+
+### 1. Environment Setup
+Before running the application locally, ensure you have the necessary API keys.
+
+1. Create a `.env` file in the root directory (refer to `.env.example` or the code for required keys like `OPENAI_API_KEY`).
+2. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### 2. Local Development (Without Docker)
+You can run the services directly on your machine for rapid development. Ensure you load the environment variables first.
+
+*   **Load Environment Variables:**
+    ```bash
+    source setup_local.sh
+    ```
+
+*   **Run the MCP Server:**
+    ```bash
+    ./start-mcp.sh
+    ```
+
+*   **Run the UI:**
+    ```bash
+    ./start-ui.sh
+    ```
+
+*   **Test the Agent (CLI):**
+    ```bash
+    python py/agent.py
+    ```
+
+### 3. Local Development (With Docker Compose)
+To test the full containerized setup locally (simulating the production environment):
+
+```bash
+docker-compose up -d --build
 ```
