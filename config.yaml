@@ -9,21 +9,8 @@ llm:
   provider: openai
   model: gpt-4o
 mcp:
-  server:
-    transport: streamable-http
-    port: 8087
-  client:
-    url: http://localhost:8087/mcp
-models:
-  embedding:
-    name_or_path: BAAI/bge-small-zh-v1.5
-    kwargs:
-      local_files_only: false
-  reranker:
-    name_or_path: BAAI/bge-reranker-base
-    kwargs:
-      local_files_only: false
-    threshold: 0.5
+  transport: streamable-http
+  port: 8080
 system_prompt: |
   你是一位聖經學習助手，專注於幫助使用者理解和學習聖經內容。請根據使用者的問題，本著聖經的信息來回到以聖經為出發點的答案。
   你的信仰如下:
@@ -40,7 +27,7 @@ vector_store:
   provider: qdrant
   client_args:
     # url: http://localhost:6333
-    url: http://host.docker.internal:6333
-    # url: https://aea781ae-b85a-4ebf-b814-0887595e6114.us-east4-0.gcp.cloud.qdrant.io:6333
+    # url: http://host.docker.internal:6333
+    url: https://aea781ae-b85a-4ebf-b814-0887595e6114.us-east4-0.gcp.cloud.qdrant.io:6333
     token_var: QDRANT_API_KEY
   collection_name: bible-study-bot

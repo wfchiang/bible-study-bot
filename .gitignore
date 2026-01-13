@@ -4,5 +4,5 @@ docker_volumes/
 venv/
 
 .env
-local_env.sh
+local_*.sh
 tmp.*

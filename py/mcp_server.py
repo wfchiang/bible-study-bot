@@ -133,5 +133,5 @@ async def search_bible_chunks(
 if __name__ == "__main__":
     # Use streamable-http transport for production
     mcp_app.run(
-        transport=config["mcp"]["server"]["transport"],
-        host="0.0.0.0", port=config["mcp"]["server"]["port"])
+        transport=config["mcp"]["transport"],
+        host="0.0.0.0", port=config["mcp"]["port"])
