@@ -8,12 +8,19 @@ from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
 
-from config import config, httpx_client, httpx_async_client, mcp_client
-from data.definitions import AgentState
+from config import httpx_client, httpx_async_client, mcp_client
+from data.definitions import AgentState, PROFESSION_OF_FAITH
+from sub_agents.planner import make_plan as tool_make_plan
 
 
 # 1. Global variable for the system prompt. You can edit this!
-SYSTEM_PROMPT = config["system_prompt"]
+SYSTEM_PROMPT = """你是一位聖經學習助手，專注於幫助使用者理解和學習聖經內容。請根據使用者的問題，本著聖經的信息來回到以聖經為出發點的答案。
+你的信仰宣言如下：
+{profession_of_faith}
+
+請先制定計畫，再回答問題。
+""".format(
+    profession_of_faith=PROFESSION_OF_FAITH)
 
 
 def check_env_vars() -> None:
@@ -31,7 +38,7 @@ async def create_agent() -> StateGraph:
     check_env_vars()
 
     mcp_tools = await mcp_client.get_tools()
-    tools: List = mcp_tools + create_web_search_tool()
+    tools: List = mcp_tools + create_web_search_tool() + [tool_make_plan]
 
     llm = ChatOpenAI(model="gpt-4.1-mini-2025-04-14",
                      http_client=httpx_client,
