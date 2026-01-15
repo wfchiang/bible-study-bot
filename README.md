@@ -1,6 +1,6 @@
-# Bible Study Bot
+# Bible Study Basis
 
-The **Bible Study Bot** is an AI-powered assistant designed to facilitate various Bible study tasks. It specializes in answering questions related to the Bible and Christianity, as well as assisting in the design and creation of Bible study materials.
+The **Bible Study Basis** is an AI-powered assistant designed to facilitate various Bible study tasks. It specializes in answering questions related to the Bible and Christianity, as well as assisting in the design and creation of Bible study materials.
 
 Currently, the primary language supported is **Mandarin Chinese**, with plans to expand support to other languages in the future.
 
