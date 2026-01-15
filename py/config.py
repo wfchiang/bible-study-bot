@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import httpx
+from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import OpenAIEmbeddings
 import yaml
 
@@ -20,3 +22,27 @@ embedding_model = OpenAIEmbeddings(
         max_retries=config["embedding"]["openai_max_retries"])
 
 embedding_length = len(embedding_model.embed_query("This is a test"))
+
+
+# Create the MCP client
+mcp_client = MultiServerMCPClient({
+    "service": {
+        "transport": config["mcp"]["transport"],
+        "url": os.environ["BSB_MCP_SERVER"],
+    }
+})
+
+
+# Create the HTTP clients
+class CustomHTTPClient(httpx.Client):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
+        super().__init__(*args, **kwargs)
+
+class CustomHTTPAsyncClient(httpx.AsyncClient):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
+        super().__init__(*args, **kwargs)
+
+httpx_client = CustomHTTPClient()
+httpx_async_client = CustomHTTPAsyncClient()

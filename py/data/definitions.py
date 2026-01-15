@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Union, List 
+from typing import Any, Dict, Union, List
+
+from langgraph.graph import MessagesState
 
 
 METADATA_TYPE = Dict[
@@ -183,3 +185,6 @@ class Bible(BaseModel):
     books: List[BibleBook]
     version: str
 
+
+class AgentState(MessagesState):
+    status: dict[str, Any]

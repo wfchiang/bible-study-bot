@@ -1,28 +1,16 @@
 import asyncio
-import httpx
 import os
 import json
 from typing import List
 
 from langchain_core.messages import SystemMessage
-from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
-from langgraph.graph import StateGraph, MessagesState, START, END
+from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
 
-from config import config
-
-
-class CustomHTTPClient(httpx.Client):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
-        super().__init__(*args, **kwargs)
-
-class CustomHTTPAsyncClient(httpx.AsyncClient):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop("proxies", None)  # To fix an OpenAI issue: Remove the 'proxies' argument if present
-        super().__init__(*args, **kwargs)
+from config import config, httpx_client, httpx_async_client, mcp_client
+from data.definitions import AgentState
 
 
 # 1. Global variable for the system prompt. You can edit this!
@@ -43,16 +31,6 @@ def check_env_vars() -> None:
 async def create_agent() -> StateGraph:
     check_env_vars()
 
-    httpx_client = CustomHTTPClient()
-    httpx_async_client = CustomHTTPAsyncClient()
-
-    mcp_client = MultiServerMCPClient({
-        "service": {
-            "transport": config["mcp"]["transport"],
-            "url": os.environ["BSB_MCP_SERVER"],
-        }
-    })
-
     mcp_tools = await mcp_client.get_tools()
     tools: List = mcp_tools + create_web_search_tool()
 
@@ -61,19 +39,19 @@ async def create_agent() -> StateGraph:
                      http_async_client=httpx_async_client,)
     llm_with_tools = llm.bind_tools(tools)
 
-    def call_model(state: MessagesState):
+    def call_llm(state: AgentState):
         messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
         response = llm_with_tools.invoke(messages)
         return {"messages": [response]}
 
-    def should_continue(state: MessagesState):
+    def should_continue(state: AgentState):
         last_message = state["messages"][-1]
         if last_message.tool_calls:
             return "tools"
         return END
 
-    workflow = StateGraph(MessagesState)
-    workflow.add_node("agent", call_model)
+    workflow = StateGraph(AgentState)
+    workflow.add_node("agent", call_llm)
     workflow.add_node("tools", ToolNode(tools))
 
     workflow.add_edge(START, "agent")
