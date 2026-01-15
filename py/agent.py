@@ -1,4 +1,3 @@
-import asyncio
 import os
 import json
 from typing import List
@@ -72,6 +71,7 @@ def create_web_search_tool() -> List:
 
 
 if __name__ == "__main__":
+    import asyncio
     async def main():
         agent = await create_agent()
 

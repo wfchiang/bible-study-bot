@@ -157,6 +157,15 @@ assert(all([ot in BIBLE_BOOKS_CUVS for ot in OLD_TESTAMENT]))
 assert(all([nt in BIBLE_BOOKS_CUVS for nt in NEW_TESTAMENT]))
 
 
+PROFESSION_OF_FAITH = """1. 我信三位一體，上帝是獨一無二的神，永恆存在於父、子、聖靈三位格中。
+2. 我信上帝是創造天地的主，是全然公義、聖潔、慈愛的神。
+3. 我信耶穌基督是上帝的獨生愛子，是世人唯一的救主。
+4. 我信聖靈是神的同在，使我們得著重生與更新。
+5. 我信聖經是神的話語，指引我們信仰與生活。
+6. 我信耶穌基督為我們的罪被釘十字架，第三日復活，升天坐在父神右邊，將來必再來審判活人死人。
+7. 我信聖徒相通、罪得赦免、身體復活、永生永世。"""
+
+
 TEXT_CATEGORIES = [
     "bible", "commentary", "devotional",
 ]
