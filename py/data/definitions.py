@@ -1,11 +1,14 @@
+from abc import abstractmethod
+import asyncio
+from enum import Enum
 from pydantic import BaseModel, Field
-from typing import Any, Dict, Union, List
+from typing import Annotated, TypedDict, Union
 
-from langgraph.graph import MessagesState
+from langgraph.graph import StateGraph
 
 
-METADATA_TYPE = Dict[
-    str, Union[str, int, float, List[str], List[int], List[float]]]
+METADATA_TYPE = dict[
+    str, Union[str, int, float, list[str], list[int], list[float]]]
 
 OLD_TESTAMENT = [
     "genesis", 
@@ -171,6 +174,16 @@ TEXT_CATEGORIES = [
 ]
 
 
+def _merge_dict(
+        existing: dict, updates: dict) -> dict:
+    return {**existing, **updates}
+
+
+def _reduce_list(
+        existing: list, news: list) -> list:
+    return existing + news
+
+
 class TextChunk(BaseModel):
     text :str 
     metadata :METADATA_TYPE = Field(default_factory=dict)
@@ -182,7 +195,7 @@ class BibleVerse(TextChunk):
 
 
 class BibleBook(BaseModel):
-    verses: List[BibleVerse]
+    verses: list[BibleVerse]
     book: str
 
     @property
@@ -191,9 +204,50 @@ class BibleBook(BaseModel):
 
 
 class Bible(BaseModel):
-    books: List[BibleBook]
+    books: list[BibleBook]
     version: str
 
 
-class AgentState(MessagesState):
-    status: dict[str, Any]
+class AgentRunStatus(str, Enum):
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+class AgentState(TypedDict):
+    messages: Annotated[list, _reduce_list]
+    plan: Annotated[dict[str, dict], _merge_dict]
+
+
+class BSBAgent:
+    targeted_services: list[str] | None = None
+
+    def __init__ (self, *args, **kwargs):
+        self.graph = asyncio.run(self._create_graph())
+    
+    @abstractmethod
+    async def _create_graph(self) -> StateGraph:
+        pass
+    
+    @abstractmethod
+    async def invoke(
+            self, state: AgentState) -> dict:
+        pass
+
+    def _find_task(self, state: AgentState) -> int | None:
+        """
+        Find the task in the plan DAG.
+        """
+        assert "plan" in state, "plan not in state"
+
+        if self.targeted_services is None:
+            return None
+        to_check = [state["plan"]["root"]]
+        while len(to_check) > 0:
+            node_id = to_check.pop(0)
+            if node := state["plan"]["nodes"].get(node_id):
+                if node["service"] in self.targeted_services:
+                    if "status" not in "service":
+                        return node_id
+                to_check = to_check + node.get("children", [])
+        return None

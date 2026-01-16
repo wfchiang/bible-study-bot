@@ -4,7 +4,7 @@ from pathlib import Path
 import fastmcp
 
 from config import config
-from data.definitions import BibleBook, BibleVerse
+from data.definitions import BibleBook
 from data.utils import make_bible_quote
 from data.loaders import load_bible_from_dir
 from db.vector_store import search_text_chunks
